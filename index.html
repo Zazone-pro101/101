@@ -1374,9 +1374,18 @@ function loadDay() {
   ];
   if (!d) {
     fields.flat().forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-    ['s1_80_r','s1_92_r','s1_sol_r','s1_w_r','s2_80_r','s2_92_r','s2_sol_r','s2_w_r'].forEach(id => { const el=document.getElementById(id); if(el) el.dataset.auto='true'; });
-    ['s1_80_curr','s1_80_prev','s1_92_curr','s1_92_prev','s1_sol_curr','s1_sol_prev','s2_80_curr','s2_80_prev','s2_92_curr','s2_92_prev','s2_sol_curr','s2_sol_prev'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-    ['s1_80_diff','s1_92_diff','s1_sol_diff','s2_80_diff','s2_92_diff','s2_sol_diff'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='—';});
+    ['s1_80_r','s1_92_r','s1_sol_r','s1_w_r','s2_80_r','s2_92_r','s2_sol_r','s2_w_r'].forEach(id => { 
+      const el=document.getElementById(id); 
+      if(el) el.dataset.auto='true'; 
+    });
+    ['s1_80_curr','s1_80_prev','s1_92_curr','s1_92_prev','s1_sol_curr','s1_sol_prev','s2_80_curr','s2_80_prev','s2_92_curr','s2_92_prev','s2_sol_curr','s2_sol_prev'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el)el.value='';
+    });
+    ['s1_80_diff','s1_92_diff','s1_sol_diff','s2_80_diff','s2_92_diff','s2_sol_diff'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el)el.textContent='—';
+    });
     shiftExp = _emptyShiftExp();
     calcBons();
     clearFinancials();
@@ -1384,9 +1393,23 @@ function loadDay() {
     renderShiftExp('s1'); renderShiftExp('s2');
     calc(); return;
   }
+  
+  // ✅ FIX: Set data-auto BEFORE loading values
   const revIds = ['s1_80_r','s1_92_r','s1_sol_r','s1_w_r','s2_80_r','s2_92_r','s2_sol_r','s2_w_r'];
-  revIds.forEach(id => { const el=document.getElementById(id); if(el) el.dataset.auto='true'; });
-  const set = (id, val) => { const el=document.getElementById(id); if(el) el.value = val||''; };
+  revIds.forEach(id => { 
+    const el=document.getElementById(id); 
+    if(el) el.dataset.auto='true'; 
+  });
+  
+  const set = (id, val) => { 
+    const el=document.getElementById(id); 
+    if(el) {
+      el.value = val||''; 
+      // Ensure data-auto is preserved
+      if(revIds.includes(id)) el.dataset.auto='true';
+    }
+  };
+  
   set('s1_80_l',d.s1.b80.l); set('s1_80_r',d.s1.b80.r);
   set('s1_92_l',d.s1.b92.l); set('s1_92_r',d.s1.b92.r);
   set('s1_sol_l',d.s1.sol.l); set('s1_sol_r',d.s1.sol.r);
@@ -1395,10 +1418,12 @@ function loadDay() {
   set('s2_92_l',d.s2.b92.l); set('s2_92_r',d.s2.b92.r);
   set('s2_sol_l',d.s2.sol.l); set('s2_sol_r',d.s2.sol.r);
   set('s2_w_c',d.s2.wash.c); set('s2_w_r',d.s2.wash.r);
+  
   if (d.supply) {
     setSupply(true);
     set('sup_80',d.supply.b80); set('sup_92',d.supply.b92); set('sup_sol',d.supply.sol); set('sup_amount',d.supply.amount||'');
   } else setSupply(false);
+  
   if (d.meters) {
     const sm=(id,v)=>{const el=document.getElementById(id);if(el)el.value=(v!=null)?v:'';};
     ['b80','b92','sol'].forEach(k=>{
@@ -1411,15 +1436,19 @@ function loadDay() {
       ['80','92','sol'].forEach(code=>{ calcMeter(sh, code); });
     });
   }
+  
   if (d.bons) {
     if(d.bons.prices){ bonPrices={...d.bons.prices}; loadBonPrices(); }
     if(d.bons.companies){ cbons=JSON.parse(JSON.stringify(d.bons.companies)); renderCbons(); }
     calcBons();
   }
+  
   if (d.financials) loadFinancials(d.financials);
+  
   // Restore shift expenses
   shiftExp = d.shiftExp ? JSON.parse(JSON.stringify(d.shiftExp)) : _emptyShiftExp();
   renderShiftExp('s1'); renderShiftExp('s2');
+  
   calc();
 }
 
